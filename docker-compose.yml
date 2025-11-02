@@ -1,0 +1,15 @@
+services:
+  hp-150nw-monitor:
+    image: hp-150nw-monitor
+    container_name: hp-150nw-monitor
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    networks:
+      - printer-network
+
+networks:
+  printer-network:
+    driver: bridge
