@@ -159,7 +159,7 @@ def format_simple_status(status, consumables):
 
 if __name__ == '__main__':
     # Parse argomenti
-    printer_ip = '192.168.188.150'
+    printer_ip = '192.168.1.39'
     full_output = False
 
     for arg in sys.argv[1:]:
