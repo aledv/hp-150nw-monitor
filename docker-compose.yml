@@ -1,9 +1,8 @@
-# Deploy con Docker Compose: API su http://<host>:${HP_MONITOR_PORT:-5001}/printer/<ip-stampante>
-# (sul server di casa: HP_MONITOR_PORT=8107 nel file .env, non versionato).
+# Per provarlo altrove. Sul Raspberry Pi il compose effettivo, con l'immagine fissata (tag@sha256),
+# sta in my_rpi_scripts/hp-150nw-monitor/.
 services:
   hp-150nw-monitor:
-    build: .
-    image: hp-150nw-monitor
+    image: ghcr.io/aledv/hp-150nw-monitor:${HP_MONITOR_TAG:-latest}
     container_name: hp-150nw-monitor
     restart: unless-stopped
     ports:

@@ -1,0 +1,48 @@
+# Test + immagine Docker multi-arch (arm64 per il Raspberry Pi, amd64) pubblicata privata su GHCR.
+# Ogni push su main con test verdi -> ghcr.io/aledv/hp-150nw-monitor:<sha corto> e :latest.
+name: test-and-image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: python -m unittest discover -s tests -v
+
+  image:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        run: echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/arm64,linux/amd64
+          push: true
+          tags: |
+            ghcr.io/aledv/hp-150nw-monitor:${{ steps.meta.outputs.short }}
+            ghcr.io/aledv/hp-150nw-monitor:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

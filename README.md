@@ -1,127 +1,31 @@
-# HP 150nw Printer Monitor per Raspberry Pi
+# HP 150nw Printer Monitor
 
-Monitor per stampante HP 150nw che espone API REST per monitorare stato, livelli toner e pagine stampate.
+API REST (FastAPI) che legge dalla stampante HP Color Laser 150nw lo stato e i livelli dei toner (pagine XML
+`/DevMgmt/*.xml` della stampante, scaricate con `curl`). La usa il widget di homepage.
 
-## 🚀 Installazione Rapida
+- `GET /printer/<ip>` → `{"status": ..., "toner_levels": {"Black": {"level": "70%", ...}, ...}}`
+- `GET /printer/<ip>?full=true` → tutti i dettagli
 
-### Prerequisiti
-- Raspberry Pi 5 con Raspberry Pi OS
-- Docker e Docker Compose installati
-- Stampante HP 150nw connessa alla rete
+## Test
 
-### Installazione Docker (se non presente)
 ```bash
-# Installa Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker $USER
-
-# Installa Docker Compose
-sudo apt-get update
-sudo apt-get install docker compose-plugin
+pip install -r requirements.txt -r requirements-dev.txt
+python -m unittest discover -s tests -v
 ```
 
-### Deploy dell'applicazione
+Senza rete: le risposte XML della stampante sono simulate.
 
-1. **Scarica i file del progetto**
-2. **Rendi eseguibile lo script di build**
-   ```bash
-   chmod +x build.sh
-   ```
+## Immagine e deploy
 
-3. **Avvia il build**
-   ```bash
-   ./build.sh
-   ```
-4. **Avvia il deploy**
-   ```bash
-   docker compose up -d
-   ```
+- Ogni push su `main` esegue i test con GitHub Actions e, se passano, pubblica l'immagine multi-arch
+  (`linux/arm64` per il Raspberry Pi, `linux/amd64`) su `ghcr.io/aledv/hp-150nw-monitor`, privata, con tag `<sha corto>` e `latest`.
+- In produzione gira sul Raspberry Pi: il compose è in `my_rpi_scripts/hp-150nw-monitor/docker-compose.yml`, con
+  l'immagine fissata (`:<sha>@sha256:...`). Aggiornare: push → Action verde → tag e digest nel compose →
+  `docker compose pull && docker compose up -d` sul Pi → `curl http://192.168.1.30:5001/printer/<ip-stampante>`.
+  Rollback: tag precedente.
+- Il `docker-compose.yml` di questo repo serve per provarlo altrove (`HP_MONITOR_BIND`, `HP_MONITOR_PORT`, `HP_MONITOR_TAG`).
 
-## 📡 API Disponibili
+## Uso da riga di comando
 
-### Stato Stampante e Livelli Toner
-```bash
-GET /printer/{ip}
-```
-Verifica lo stato del servizio:
-```json
-{
-	"status": "inPowerSave",
-	"toner_levels": {
-		"Black": {
-			"level": "100%",
-			"product_number": "W2070A",
-			"state": "ok"
-		},
-		"Cyan": {
-			"level": "100%",
-			"product_number": "W2071A",
-			"state": "ok"
-		},
-		"Magenta": {
-			"level": "100%",
-			"product_number": "W2073A",
-			"state": "ok"
-		},
-		"Yellow": {
-			"level": "100%",
-			"product_number": "W2072A",
-			"state": "ok"
-		}
-	}
-}
-```
+`python main_standalone.py <ip-stampante> [--full]` stampa lo stesso JSON senza avviare il server.
 
-## 🛠️ Comandi Utili
-
-### Visualizza logs
-```bash
-docker compose logs -f
-```
-
-### Riavvia il servizio
-```bash
-docker compose restart
-```
-
-### Ferma il servizio
-```bash
-docker compose down
-```
-
-### Ricostruisci l'immagine
-```bash
-docker compose down
-docker compose build --no-cache
-docker compose up -d
-```
-
-### Stato del container
-```bash
-docker compose ps
-```
-
-## 🔍 Troubleshooting
-
-### Stampante non trovata
-1. Verifica che la stampante sia accesa e connessa alla rete
-2. Controlla l'IP della stampante nel pannello di controllo
-
-### Servizio non raggiungibile
-1. Verifica che il container sia in esecuzione: `docker compose ps`
-2. Controlla i logs: `docker compose logs`
-3. Verifica la porta: `netstat -tlnp | grep 5001`
-
-## 🆘 Supporto
-
-Se riscontri problemi:
-1. Verifica i logs: `docker compose logs`
-2. Controlla la connettività alla stampante
-3. Verifica la configurazione dell'IP
-
-## 📝 Note
-
-- Il servizio è ottimizzato per Raspberry Pi 5 (ARM64)
-- Compatibile con stampanti HP 150nw
-- Può essere adattato per altri modelli HP modificando main.py
