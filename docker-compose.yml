@@ -1,15 +1,12 @@
+# Deploy con Docker Compose: API su http://<host>:${HP_MONITOR_PORT:-5001}/printer/<ip-stampante>
+# (sul server di casa: HP_MONITOR_PORT=8107 nel file .env, non versionato).
 services:
   hp-150nw-monitor:
+    build: .
     image: hp-150nw-monitor
     container_name: hp-150nw-monitor
     restart: unless-stopped
     ports:
-      - "5001:5001"
+      - "${HP_MONITOR_BIND:-0.0.0.0}:${HP_MONITOR_PORT:-5001}:5001"
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
-    networks:
-      - shared_network
-
-networks:
-  shared_network:
-    external: true    
