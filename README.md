@@ -15,6 +15,16 @@ python -m unittest discover -s tests -v
 
 Senza rete: le risposte XML della stampante sono simulate.
 
+
+## Linter
+
+```bash
+ruff check . && ruff format --check .        # Python (configurazione in ruff.toml)
+hadolint --config .hadolint.yaml <Dockerfile> # Dockerfile
+```
+
+In CI girano prima dei test (job `lint` in `.github/workflows/image.yml`): se falliscono, niente test né immagine.
+
 ## Immagine e deploy
 
 - Ogni push su `main` esegue i test con GitHub Actions e, se passano, pubblica l'immagine multi-arch

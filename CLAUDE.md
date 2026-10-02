@@ -11,3 +11,6 @@ stampante ha TLS vecchio). Il formato della risposta di `/printer/<ip>` è usato
 - Push su `main` → `.github/workflows/image.yml` → `ghcr.io/aledv/hp-150nw-monitor:<sha corto>`.
 - Deploy in produzione sul Raspberry Pi: tag e digest in `my_rpi_scripts/hp-150nw-monitor/docker-compose.yml`, poi
   `docker compose pull && docker compose up -d` e prova dell'endpoint.
+
+## Linter
+`ruff check . && ruff format --check .` (config `ruff.toml`) e hadolint sul Dockerfile (`.hadolint.yaml`): girano in CI prima dei test e sono bloccanti. Prima di ogni commit lancia `ruff check --fix . && ruff format .`.

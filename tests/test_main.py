@@ -1,14 +1,16 @@
 """Test senza rete: le risposte XML della stampante sono simulate.
 Run: pip install -r requirements.txt -r requirements-dev.txt && python -m unittest discover -s tests -v
 """
+
 import sys
 import unittest
 from pathlib import Path
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-import main  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
+
+import main  # noqa: E402
 
 STATUS_XML = """<?xml version="1.0"?>
 <psdyn:ProductStatusDyn xmlns:psdyn="http://www.hp.com/schemas/imaging/con/ledm/productstatusdyn/2007/10/31"

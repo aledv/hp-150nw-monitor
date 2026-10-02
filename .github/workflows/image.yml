@@ -1,4 +1,4 @@
-# Test + immagine Docker multi-arch (arm64 per il Raspberry Pi, amd64) pubblicata privata su GHCR.
+# Linter + test + immagine Docker multi-arch (arm64 per il Raspberry Pi, amd64) pubblicata privata su GHCR.
 # Ogni push su main con test verdi -> ghcr.io/aledv/hp-150nw-monitor:<sha corto> e :latest.
 name: test-and-image
 
@@ -12,7 +12,23 @@ permissions:
   packages: write
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff==0.16.10
+      - run: ruff check .
+      - run: ruff format --check .
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          config: .hadolint.yaml
+
   test:
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
