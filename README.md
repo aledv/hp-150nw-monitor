@@ -1,41 +1,84 @@
-# HP 150nw Printer Monitor
+# hp-150nw-monitor
 
-API REST (FastAPI) che legge dalla stampante HP Color Laser 150nw lo stato e i livelli dei toner (pagine XML
-`/DevMgmt/*.xml` della stampante, scaricate con `curl`). La usa il widget di homepage.
+A tiny REST API that reads the status and toner levels of an **HP Color Laser 150nw** printer (and other HP printers
+exposing the same LEDM `/DevMgmt/*.xml` pages) and returns them as JSON. Made for dashboard widgets such as
+[Homepage](https://gethomepage.dev)'s custom API widget, Home Assistant REST sensors or monitoring scripts.
 
-- `GET /printer/<ip>` → `{"status": ..., "toner_levels": {"Black": {"level": "70%", ...}, ...}}`
-- `GET /printer/<ip>?full=true` → tutti i dettagli
+The printer only speaks old TLS with weak DH keys, which Python's `ssl` refuses, so the pages are fetched with `curl`.
 
-## Test
+## API
+
+`GET /printer/<ip-or-hostname>`
+
+```json
+{
+  "status": "inPowerSave",
+  "toner_levels": {
+    "Black": {"level": "70%", "product_number": "W2070A", "state": "ok"},
+    "Cyan": {"level": "90%", "product_number": "W2071A", "state": "ok"}
+  }
+}
+```
+
+- `GET /printer/<ip-or-hostname>?full=true` returns every field of the status and consumables pages (alerts included).
+- `GET /health` returns `{"status": "ok"}`.
+- An invalid address returns 400. An unreachable printer still returns 200, with `"status": "unknown"` and empty
+  `toner_levels` (or an `error` field with `?full=true`).
+
+## Quick start
+
+```bash
+docker build -t hp-150nw-monitor .
+docker run -d --name hp-150nw-monitor -p 5001:5001 hp-150nw-monitor
+curl http://localhost:5001/printer/192.168.1.50
+```
+
+Or with Compose, using the image built by CI: `docker compose up -d`. The bind address, port and tag can be changed
+with `HP_MONITOR_BIND`, `HP_MONITOR_PORT` and `HP_MONITOR_TAG` (see `.env.sample`).
+
+Homepage example (`services.yaml`):
+
+```yaml
+- Printer:
+    widget:
+      type: customapi
+      url: http://<host>:5001/printer/<printer-ip>
+      mappings:
+        - field: { toner_levels: { Black: level } }
+          label: Black
+        - field: status
+          label: Status
+```
+
+## Command line
+
+```bash
+python main_standalone.py <printer-ip-or-hostname> [--full]
+```
+
+Prints the same JSON without starting a server. It only needs Python and `curl`, no FastAPI.
+
+## Development
 
 ```bash
 pip install -r requirements.txt -r requirements-dev.txt
-python -m unittest discover -s tests -v
+python -m unittest discover -s tests -v        # tests (printer XML simulated, no network)
+ruff check . && ruff format --check .          # Python linter (ruff.toml)
+hadolint --config .hadolint.yaml Dockerfile    # Dockerfile linter
 ```
 
-Senza rete: le risposte XML della stampante sono simulate.
+CI (`.github/workflows/image.yml`) runs the linters, then the tests. On `main` it also builds a multi-arch image
+(`linux/arm64`, `linux/amd64`) and pushes it to `ghcr.io/aledv/hp-150nw-monitor`, tagged `<short sha>` and `latest`.
 
+## Project structure
 
-## Linter
-
-```bash
-ruff check . && ruff format --check .        # Python (configurazione in ruff.toml)
-hadolint --config .hadolint.yaml <Dockerfile> # Dockerfile
+```
+printer.py           reads and parses the printer's XML pages (no web framework)
+main.py              FastAPI app: /printer/<host>, /health
+main_standalone.py   command-line version
+tests/               unit tests with simulated printer responses
 ```
 
-In CI girano prima dei test (job `lint` in `.github/workflows/image.yml`): se falliscono, niente test né immagine.
+## License
 
-## Immagine e deploy
-
-- Ogni push su `main` esegue i test con GitHub Actions e, se passano, pubblica l'immagine multi-arch
-  (`linux/arm64` per il Raspberry Pi, `linux/amd64`) su `ghcr.io/aledv/hp-150nw-monitor`, privata, con tag `<sha corto>` e `latest`.
-- In produzione gira sul Raspberry Pi: il compose è in `my_rpi_scripts/hp-150nw-monitor/docker-compose.yml`, con
-  l'immagine fissata (`:<sha>@sha256:...`). Aggiornare: push → Action verde → tag e digest nel compose →
-  `docker compose pull && docker compose up -d` sul Pi → `curl http://192.168.1.30:5001/printer/<ip-stampante>`.
-  Rollback: tag precedente.
-- Il `docker-compose.yml` di questo repo serve per provarlo altrove (`HP_MONITOR_BIND`, `HP_MONITOR_PORT`, `HP_MONITOR_TAG`).
-
-## Uso da riga di comando
-
-`python main_standalone.py <ip-stampante> [--full]` stampa lo stesso JSON senza avviare il server.
-
+MIT, see [LICENSE](LICENSE).

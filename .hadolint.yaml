@@ -1,5 +1,5 @@
-# hadolint (linter dei Dockerfile, in CI). DL3008: niente versioni fisse per apt, le vecchie spariscono dai mirror;
-# la riproducibilità la dà la base fissata per digest.
+# Dockerfile linter (CI). DL3008: no pinned apt versions, old ones disappear from the mirrors;
+# reproducibility comes from the base image pinned by digest.
 ignored:
   - DL3008
 failure-threshold: warning

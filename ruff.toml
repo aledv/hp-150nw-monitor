@@ -1,4 +1,4 @@
-# Linter (regola generale: lanciato in CI prima dei test). Locale: ruff check . && ruff format --check .
+# Python linter, run in CI before the tests. Locally: ruff check . && ruff format --check .
 line-length = 120
 target-version = "py310"
 
@@ -6,5 +6,5 @@ target-version = "py310"
 select = ["E", "F", "W", "I", "B", "UP"]
 
 [lint.flake8-bugbear]
-# FastAPI dichiara i parametri con File()/Form()/Query() nei default: è il modo previsto, non un errore
+# FastAPI declares parameters with File()/Form()/Query() as defaults: that's the intended usage
 extend-immutable-calls = ["fastapi.File", "fastapi.Form", "fastapi.Query", "fastapi.Depends"]

@@ -1,16 +1,13 @@
 # CLAUDE.md — hp-150nw-monitor
 
-API FastAPI (`main.py`) che legge stato e toner della stampante HP 150nw dalle sue pagine XML (via `curl`, perché la
-stampante ha TLS vecchio). Il formato della risposta di `/printer/<ip>` è usato dal widget di homepage
-(`toner_levels.<Colore>.level`): non cambiarlo senza aggiornare homepage.
+FastAPI service reading status and toner levels of an HP Color Laser 150nw from its XML pages (fetched with `curl`,
+because the printer only supports old TLS). `printer.py` holds the logic, `main.py` the API, `main_standalone.py` the CLI.
 
-## Flusso
-- Lavora su `main`, commit piccoli, push subito (regole generali in ~/.claude/CLAUDE.md).
-- Test: `pip install -r requirements.txt -r requirements-dev.txt && python -m unittest discover -s tests -v`
-  (XML simulati, niente rete). Aggiungi un test per ogni modifica di comportamento.
-- Push su `main` → `.github/workflows/image.yml` → `ghcr.io/aledv/hp-150nw-monitor:<sha corto>`.
-- Deploy in produzione sul Raspberry Pi: tag e digest in `my_rpi_scripts/hp-150nw-monitor/docker-compose.yml`, poi
-  `docker compose pull && docker compose up -d` e prova dell'endpoint.
-
-## Linter
-`ruff check . && ruff format --check .` (config `ruff.toml`) e hadolint sul Dockerfile (`.hadolint.yaml`): girano in CI prima dei test e sono bloccanti. Prima di ogni commit lancia `ruff check --fix . && ruff format .`.
+- The response format of `/printer/<host>` (`toner_levels.<Colour>.level`, `status`) is consumed by dashboard widgets:
+  don't change it without a very good reason, and say so in the commit message.
+- Keep `printer.py` free of FastAPI: the CLI must run with plain Python + curl.
+- Every behaviour change gets a test (`tests/test_main.py`, printer XML simulated, no network).
+- Before committing: `ruff check --fix . && ruff format .`, then the tests (commands in README). CI runs the same
+  linters (ruff, hadolint) before the tests and blocks the image build if they fail.
+- Production deployment is managed outside this repo: it pins the image built by CI (`tag@sha256`).
+- English for code, comments, docs and commit messages.

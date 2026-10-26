@@ -1,5 +1,4 @@
-# Per provarlo altrove. Sul Raspberry Pi il compose effettivo, con l'immagine fissata (tag@sha256),
-# sta in my_rpi_scripts/hp-150nw-monitor/.
+# Runs the image built by CI. For production, pin it as tag@sha256.
 services:
   hp-150nw-monitor:
     image: ghcr.io/aledv/hp-150nw-monitor:${HP_MONITOR_TAG:-latest}
@@ -7,5 +6,3 @@ services:
     restart: unless-stopped
     ports:
       - "${HP_MONITOR_BIND:-0.0.0.0}:${HP_MONITOR_PORT:-5001}:5001"
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"

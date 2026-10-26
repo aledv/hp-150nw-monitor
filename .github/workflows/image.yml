@@ -1,5 +1,5 @@
-# Linter + test + immagine Docker multi-arch (arm64 per il Raspberry Pi, amd64) pubblicata privata su GHCR.
-# Ogni push su main con test verdi -> ghcr.io/aledv/hp-150nw-monitor:<sha corto> e :latest.
+# Lint -> tests -> multi-arch Docker image (arm64, amd64) on GHCR.
+# Every push to main with green checks publishes ghcr.io/aledv/hp-150nw-monitor:<short sha> and :latest.
 name: test-and-image
 
 on:
