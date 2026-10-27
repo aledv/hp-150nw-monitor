@@ -1,5 +1,7 @@
 # hp-150nw-monitor
 
+[![CI](https://github.com/aledv/hp-150nw-monitor/actions/workflows/image.yml/badge.svg)](https://github.com/aledv/hp-150nw-monitor/actions/workflows/image.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Image](https://img.shields.io/badge/ghcr.io-hp--150nw--monitor-2496ED?logo=docker&logoColor=white)](https://github.com/aledv/hp-150nw-monitor/pkgs/container/hp-150nw-monitor)
+
 A tiny REST API that reads the status and toner levels of an **HP Color Laser 150nw** printer (and other HP printers
 exposing the same LEDM `/DevMgmt/*.xml` pages) and returns them as JSON. Made for dashboard widgets such as
 [Homepage](https://gethomepage.dev)'s custom API widget, Home Assistant REST sensors or monitoring scripts.
@@ -78,6 +80,10 @@ main.py              FastAPI app: /printer/<host>, /health
 main_standalone.py   command-line version
 tests/               unit tests with simulated printer responses
 ```
+
+## Contributing
+
+Issues and pull requests are welcome. Please run the linters and tests (see [Development](#development)) before opening a pull request.
 
 ## License
 
